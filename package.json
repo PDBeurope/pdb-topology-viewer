@@ -42,5 +42,5 @@
     "snippets": ["examples/biojs"],
     "first": "simple"
    }, 
-  "keywords": ["BioJS", "PDB component", "PDB Topology Viewer", "PDBe", "Protein 2D representation", 'AngularJS', 'D3.js']
+  "keywords": ["BioJS", "PDB component", "PDB Topology Viewer", "PDBe", "Protein 2D representation", "AngularJS", "D3.js"]
 }
