@@ -1,0 +1,10 @@
+node_modules
+.idea/
+*.log
+.DS_Store
+coverage/lcov.info
+.coveralls.yml
+examples-out
+bower_components/
+node_modules/
+build/pdbprints_browserify.js

@@ -1,0 +1,26 @@
+{
+  "name": "pdb-topology-viewer",
+  "version": "1.0.0",
+  "main": "./build/pdb.topology.viewer.min.js",
+  "authors": [
+    "Mandar Deshpande <mandar@ebi.ac.uk>"
+  ],
+  "description": "The topology viewer depicts the secondary structure of a protein in a 2D representation. It is a PDB Component developed using D3.js and AngularJS.",
+  "moduleType": [
+    "globals"
+  ],
+  "keywords": ["BioJS", "PDB component", "PDB Topology Viewer", "PDBe", "Protein 2D representation", 'AngularJS', 'D3.js'],
+  "license": "Apache-2.0",
+  "homepage": "http://www.ebi.ac.uk/pdbe/pdb-component-library/doc.html#a_topologyViewer",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "1.4.7",
+	"d3": "3.5.3"
+  }
+}

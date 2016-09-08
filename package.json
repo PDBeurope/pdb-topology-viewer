@@ -1,0 +1,46 @@
+{
+  "name": "pdb-topology-viewer",
+  "description": "The topology viewer depicts the secondary structure of a protein in a 2D representation, taking into account the interactions of these secondary structure elements. This leads to a consistent display of sheets and domains in the structure. For PDB entries with multiple copies of a protein, the best chain is used. The topology viewer also depicts value-added annotation from SIFTS including residue-level mapping to UniProt, sequence families (Pfam), structure domains (SCOP, CATH) and structure quality from wwPDB validation reports. It is a PDB Component developed using D3.js and AngularJS.",
+  "version": "1.0.0",
+  "homepage": "https://github.com/mandarsd/pdb-topology-viewer",
+  "author": {
+    "name": "Mandar Deshpande",
+    "email": "mandar@ebi.ac.uk"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mandarsd/pdb-topology-viewer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mandarsd/pdb-topology-viewer/issues"
+  },
+  "license": "Apache-2.0",
+  "main": "index.js",
+  "scripts": {
+		"test": "echo 'Error: no test specified' && exit 1",
+		"build": "browserify -r ./:pdb-topology-viewer -o build/pdbTopologyViewer_browserify.js"
+  },
+  "dependencies": {},
+  "devDependencies": {
+	"mkdirp": "^0.5.0",
+	"browserify": "^8.1.3",
+	"del": "^0.1.1",
+	"gulp": "^3.8.7",
+	"gulp-bump": "^0.2.1",
+	"gulp-concat": "^2.3.4",
+	"gulp-git": "^1.0.0",
+	"gulp-uglify": "^0.3.1",
+	"gulp-clean-css": "^2.0.12",
+	"gulp-autoprefixer": "^3.1.1",
+	"gulp-rename": "^1.2.2",
+	"gulp-header": "^1.8.8",
+	"gulp-sourcemaps": "^1.6.0"
+  }, 
+  "sniper": {
+    "js": [ "/build/pdbTopologyViewer_browserify.js"],
+	"css": ["/build/pdb.topology.viewer.min.css"],
+    "snippets": ["examples/biojs"],
+    "first": "simple"
+   }, 
+  "keywords": ["BioJS", "PDB component", "PDB Topology Viewer", "PDBe", "Protein 2D representation", 'AngularJS', 'D3.js']
+}
