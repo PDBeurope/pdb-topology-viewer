@@ -96,7 +96,7 @@ Use this to subscript/bind events of this component. Event data (available in ke
 *Please refer <a href="http://www.ebi.ac.uk/pdbe/pdb-component-library/doc.html#a_topologyViewer" target="_blank">this link</a> for more documentation, demo and parameters details.*
 
 ## Contact
-Please <a href="https://github.com/mandarsd/pdb-topology-viewer">use github</a> to report **bugs**, discuss potential **new features** or **ask questions** in general. Also you can <a href="http://www.ebi.ac.uk/pdbe/about/contact" target="_blank">contact us here</a> for support, feedback or to report any issues.
+Please <a href="https://github.com/PDBeurope/pdb-topology-viewer">use github</a> to report **bugs**, discuss potential **new features** or **ask questions** in general. Also you can <a href="http://www.ebi.ac.uk/pdbe/about/contact" target="_blank">contact us here</a> for support, feedback or to report any issues.
 
 ## License
 The plugin is released under the Apache License Version 2.0. You can find out more about it at http://www.apache.org/licenses/LICENSE-2.0 or within the license file of the repository.

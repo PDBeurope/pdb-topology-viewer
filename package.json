@@ -2,17 +2,17 @@
   "name": "pdb-topology-viewer",
   "description": "The topology viewer depicts the secondary structure of a protein in a 2D representation, taking into account the interactions of these secondary structure elements. This leads to a consistent display of sheets and domains in the structure. For PDB entries with multiple copies of a protein, the best chain is used. The topology viewer also depicts value-added annotation from SIFTS including residue-level mapping to UniProt, sequence families (Pfam), structure domains (SCOP, CATH) and structure quality from wwPDB validation reports. It is a PDB Component developed using D3.js and AngularJS.",
   "version": "1.0.0",
-  "homepage": "https://github.com/mandarsd/pdb-topology-viewer",
+  "homepage": "https://github.com/PDBeurope/pdb-topology-viewer",
   "author": {
     "name": "Mandar Deshpande",
     "email": "mandar@ebi.ac.uk"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/mandarsd/pdb-topology-viewer.git"
+    "url": "git://github.com/PDBeurope/pdb-topology-viewer.git"
   },
   "bugs": {
-    "url": "https://github.com/mandarsd/pdb-topology-viewer/issues"
+    "url": "https://github.com/PDBeurope/pdb-topology-viewer/issues"
   },
   "license": "Apache-2.0",
   "main": "index.js",

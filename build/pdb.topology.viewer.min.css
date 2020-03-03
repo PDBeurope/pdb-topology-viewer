@@ -1,7 +1,7 @@
 /**
  * PDB Topology Viewer
  * @version v1.0.0
- * @link https://github.com/mandarsd/pdb-topology-viewer
+ * @link https://github.com/PDBeurope/pdb-topology-viewer
  * @license Apache 2.0
  */
 /**
