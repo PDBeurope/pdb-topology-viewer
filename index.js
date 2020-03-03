@@ -1,1 +1,0 @@
-require("./build/pdb.topology.viewer.bundle.min");

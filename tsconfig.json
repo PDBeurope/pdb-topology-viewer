@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+        "declaration": true,
+        "target": "es5",
+        "alwaysStrict": true,
+        "noImplicitAny": true,
+        "noImplicitThis": false,
+        "sourceMap": true,
+        "noUnusedLocals": true,
+        "strictNullChecks": true,
+        "strictFunctionTypes": true,
+        // "downlevelIteration": true,
+        "lib": [ "es6", "dom", "esnext.asynciterable", "es2016" ],
+        // "rootDir": "src",
+        // "outDir": "build",
+        "outFile": "build/pdb-topology-viewer-plugin.js"
+  
+    },
+    "include": [ "src/app/*" ],
+    "exclude": [
+        "node_modules",
+        "build",
+        "dist"      
+    ]
+
+}

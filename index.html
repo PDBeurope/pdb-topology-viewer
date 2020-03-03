@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+
+    <!-- d3.js dependency script -->
+    <script src="https://cdn.jsdelivr.net/npm/d3@5.9.2"></script>
+    
+    <!-- PDB Topology Viewer JS -->
+    <script type="text/javascript" src="src/app/pathseg.js"></script>
+    <script type="text/javascript" src="build/pdb-topology-viewer-plugin.js"></script>
+
+    <style>
+        #pdb-topology-viewer {
+            position: relative;
+            width: 600px;
+            height: 600px;
+        }
+    </style>
+
+  </head>
+
+  <body>
+    <h4>PDB Topology Viewer Plugin Demo</h4>
+    
+    <!-- PDB Topology Viewer container -->
+    <div id="pdb-topology-viewer"></div>
+    
+    <script>
+      //Create plugin instance
+      var pluginInstance = new PdbTopologyViewerPlugin();
+
+      //Get element from HTML/Template to place the view
+      var viewContainer = document.getElementById('pdb-topology-viewer');
+  
+      //Call render method to display the 3D view
+      pluginInstance.render(viewContainer, '1', '2nnu', 'A');
+      
+    </script>
+  </body>
+
+</html>

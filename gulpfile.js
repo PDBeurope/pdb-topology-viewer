@@ -1,51 +1,23 @@
-/*global require*/
-'use strict';
-
-var gulp = require("gulp");
-
-var concat = require("gulp-concat");
-var uglify = require("gulp-uglify");
-var prefixer = require('gulp-autoprefixer');
-var cleanCSS = require('gulp-clean-css');
-var del = require("del");
-var bump = require("gulp-bump");
-var git = require("gulp-git");
-var rename = require("gulp-rename");
+var gulp = require('gulp');
+const path = require('path');
+var del = require('del');
+var concat = require('gulp-concat');
 var header = require('gulp-header');
+var uglify = require("gulp-uglify");
 
-var srcBundle = [
-	"bower_components/d3/d3.js",
-    "bower_components/angular/angular.js",
-	"lib/js/es6-promise.min.js",
-	"lib/js/pdbRGBColorCodes.js",
-	"lib/js/services.js",
-	"lib/js/d3.core.service.js",
-	"lib/js/directives.js",
-	"lib/js/templates.js",
-	"lib/js/init.js"
-];
+const PACKAGE_ROOT_PATH = process.cwd();
+const PKG_JSON = require(path.join(PACKAGE_ROOT_PATH, "package.json"));
 
-var srcCore = [
-   "lib/js/es6-promise.min.js",
-   "lib/js/pdbRGBColorCodes.js",
-   "lib/js/d3.core.service.js",
-   "lib/js/services.js",
-   "lib/js/templates.js",
-   "lib/js/directives.js"
-];
-
-var srcCss = 'lib/css';
-
-var banner = ['/**',
-  ' * PDB Topology Viewer',
-  ' * @version v1.0.0',
+const banner = ['/**',
+  ` * ${PKG_JSON.name}`,
+  ` * @version ${PKG_JSON.version}`,
   ' * @link https://github.com/PDBeurope/pdb-topology-viewer',
   ' * @license Apache 2.0',
   ' */',
   ''].join('\n');
 
-var license = ['/**',
-  ' * Copyright 2015-2016 Mandar Deshpande <mandar@ebi.ac.uk>',
+  const license = ['/**',
+  ' * Copyright 2020-2021 Mandar Deshpande <mandar@ebi.ac.uk>',
   ' * European Bioinformatics Institute (EBI, http://www.ebi.ac.uk/)',
   ' * European Molecular Biology Laboratory (EMBL, http://www.embl.de/)',
   ' * Licensed under the Apache License, Version 2.0 (the "License");',
@@ -62,60 +34,17 @@ var license = ['/**',
   ''].join('\n');
 
 
-gulp.task("clean", function (cb) {
-    del('[build]', cb);
+gulp.task('clean', function() {
+    return del([`build/${PKG_JSON.name}-component-${PKG_JSON.version}.js`, '!build']);
 });
 
-gulp.task("scriptsComplete", function () {
-    return gulp.src(srcBundle)
-        .pipe(concat("pdb.topology.viewer.bundle.min.js"))
+gulp.task('concatJs', function () {
+    return gulp.src([`build/${PKG_JSON.name}-plugin.js`,`build/${PKG_JSON.name}-component-build-${PKG_JSON.version}.js`])
+        .pipe(concat(`${PKG_JSON.name}-component-${PKG_JSON.version}.js`))
         .pipe(uglify())
-		.pipe(header(license, {} ))
+        .pipe(header(license, {} ))
 		.pipe(header(banner, {} ))
-        .pipe(gulp.dest("./build"));
+        .pipe(gulp.dest('build/'));
 });
 
-gulp.task("scriptsCore", function () {
-    return gulp.src(srcCore)
-        .pipe(concat("pdb.topology.viewer.min.js"))
-        .pipe(uglify())
-		.pipe(header(license, {} ))
-		.pipe(header(banner, {} ))
-        .pipe(gulp.dest("./build"));
-});
-
-gulp.task('stylesComplete', function () {
-    gulp.src(srcCss + '/*.css')
-        .pipe(prefixer('last 5 versions'))
-        .pipe(concat('pdb.topology.viewer.min.css'))
-        .pipe(cleanCSS())
-		.pipe(header(license, {} ))
-		.pipe(header(banner, {} ))
-        .pipe(gulp.dest("./build"));
-});
-
-gulp.task("bump", function(){
-   return gulp.src(['./package.json', './bower.json'])
-    .pipe(bump())
-    .pipe(gulp.dest('./')); 
-});
-
-gulp.task("tag", function(){
-    var pkg = require('./package.json');
-    var v = pkg.version;
-    var message = 'Release ' + v;
-    
-    return gulp.src('./')
-        .pipe(git.commit(message))
-        .pipe(git.tag(v, message))
-        .pipe(git.push('origin', 'master', '--tags'))
-        .pipe(gulp.dest('./'));
-})
-
-gulp.task('npm', ['bump','tag'], function (done) {
-  require('child_process').spawn('npm', ['publish'], { stdio: 'inherit' })
-    .on('close', done);
-});
-
-gulp.task("default", ["clean", "scriptsCore", "scriptsComplete", "stylesComplete"]);
-//gulp.task("release",['default','npm']);
+gulp.task('default', gulp.series('clean', 'concatJs'));
