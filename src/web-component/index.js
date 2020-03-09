@@ -1,22 +1,17 @@
-import { LitElement } from "lit-element";
+class PdbTopologyViewer extends HTMLElement {
 
-class PdbTopologyViewer extends LitElement {
+  static get observedAttributes() {
+    return ['pdb-id', 'entity-id', 'chain-id', 'display-style', 'error-style'];
+  }
 
-  static get properties() {
-    return {
-      pdbId: { type: String, attribute: 'pdb-id'},
-      entityId: { type: String, attribute: 'entity-id'},
-      chainId: { type: String, attribute: 'chain-id'}
-    };
+  constructor() {
+    super();
   }
 
   validateParams() {
-    if(typeof this.pdbId == 'undefined' || typeof this.entityId == 'undefined' || typeof this.chainId == 'undefined') return false;
+    if(typeof this.pdbId == 'undefined' || typeof this.entityId == 'undefined') return false;
+    if(this.pdbId == null || this.entityId == null) return false;
     return true
-  }
-
-  connectedCallback() {
-    super.connectedCallback();
   }
 
   invokePlugin(){
@@ -25,15 +20,16 @@ class PdbTopologyViewer extends LitElement {
 
     // create an instance of the plugin
     if(typeof this.viewInstance == 'undefined') this.viewInstance = new PdbTopologyViewerPlugin();
-    this.viewInstance.render(this, this.entityId, this.pdbId, this.chainId);
+    this.viewInstance.render(this, this.entityId, this.pdbId, this.chainId, this.displayStyle, this.errorStyle);
   }
 
-  updated() {
+  attributeChangedCallback() {
+    this.pdbId = this.getAttribute("pdb-id");
+    this.entityId = this.getAttribute("entity-id");
+    this.chainId = this.getAttribute("chain-id");
+    this.displayStyle = this.getAttribute("display-style");
+    this.errorStyle = this.getAttribute("error-style");
     this.invokePlugin();
-  }
-
-  createRenderRoot() {
-    return this;
   }
 
 }

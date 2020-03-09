@@ -9,6 +9,10 @@ class PdbTopologyViewerPlugin {
         qualityYellow: 'rgb(364.2857142857143,364.2857142857143,75.71428571428572)',
         qualityOrange: 'rgb(291.42857142857144,121.42857142857143,0)'
     }
+
+    displayStyle = 'border:1px solid #696969;';
+    errorStyle = 'border:1px solid #696969; height:54%; padding-top:46%; text-align:center; font-weight:bold;'
+
     sequenceArr: string[];
     entityId: string;
     entryId: string;
@@ -29,25 +33,61 @@ class PdbTopologyViewerPlugin {
     svgEle: any;
 
     
-    render(target: HTMLElement, entityId: string, entryId: string, chainId: string) {
-        if(!target && !entryId && !entityId && !chainId) return;
+    render(target: HTMLElement, entityId: string, entryId: string, chainId?: string, displayStyle?: string, errorStyle?: string) {
+        if(typeof displayStyle != 'undefined' && displayStyle != null) this.displayStyle = displayStyle;
+        if(typeof errorStyle != 'undefined' && errorStyle != null) this.errorStyle = errorStyle;
+        if(!target && !entryId && !entityId){ 
+            this.displayError('param');
+            return;
+        }
         this.targetEle = <HTMLElement> target;
         this.targetEle.innerHTML = '';
         this.entityId = entityId;
         this.entryId = entryId.toLowerCase();
-        this.chainId = chainId;
+        
+        //If chain id is not provided then get best chain id from observed residues api
+        if(typeof chainId == 'undefined' || chainId == null){
+            this.getObservedResidues(this.entryId).then((result) => {
+                if(typeof result != 'undefined' && typeof result[this.entryId] != 'undefined' && typeof result[this.entryId][this.entityId] != 'undefined'){
+                    this.chainId = result[this.entryId][this.entityId][0].chain_id;
+                    this.initPainting();
+                }else{
+                    this.displayError();
+                }
+            });
+        }else{
+            this.chainId = chainId;
+            this.initPainting()
+        }
+        
+    }
+
+    initPainting(){
         this.getApiData(this.entryId, this.chainId).then(result => {
             if(result){
+                
+                //Validate required data in the API result set (0, 2, 4)
+                if(typeof result[0] == 'undefined' || typeof result[2] == 'undefined' || typeof result[4] == 'undefined'){ 
+                    this.displayError();
+                    return;
+                }
+
                 this.apiData = result;
                 //default pdb events
 			    this.pdbevents = this.createNewEvent(['PDB.topologyViewer.click','PDB.topologyViewer.mouseover','PDB.topologyViewer.mouseout']);
-                this.getPDBSequenceArray(result[1][this.entryId]);
+                this.getPDBSequenceArray(this.apiData[0][this.entryId]);
                 this.drawTopologyStructures();
                 this.createDomainDropdown();
             }else{
 
             }
         });
+    }
+
+    displayError(errType?: string){
+        let errtxt = "Error: Data not available!"
+        if(errType == 'param') errtxt = "Error: Invalid Parameters!"
+        this.targetEle.innerHTML = `<div style="${this.errorStyle}">${errtxt}</div>`;
     }
 
     createNewEvent = function(eventTypeArr: string[]){
@@ -69,11 +109,18 @@ class PdbTopologyViewerPlugin {
 		});
 		
 		return eventObj;
-	}
+    }
+    
+    async getObservedResidues(pdbId: string) {
+        try {
+            return await (await fetch(`https://www.ebi.ac.uk/pdbe/api/pdb/entry/observed_residues_ratio/${pdbId}`)).json();
+        } catch (e) {
+          console.log(`Couldn't load UniProt variants`, e);
+        }
+    }
 
     async getApiData(pdbId: string, chainId: string) {
         const dataUrls = [
-            `https://www.ebi.ac.uk/pdbe/api/pdb/entry/observed_residues_ratio/${pdbId}`,
             `https://www.ebi.ac.uk/pdbe/api/pdb/entry/entities/${pdbId}`,
             `https://www.ebi.ac.uk/pdbe/api/mappings/${pdbId}`,
             `https://www.ebi.ac.uk/pdbe/api/topology/entry/${pdbId}`,
@@ -83,7 +130,12 @@ class PdbTopologyViewerPlugin {
         return Promise.all(dataUrls.map(url => fetch(url)))
         .then(resp => Promise.all( 
                 resp.map((r) => { 
-                    return r.json();
+                    if(r.status == 200){
+                        return r.json();
+                    }else{
+                        return undefined;
+                    }
+                    
                 }) 
             )
         )
@@ -109,7 +161,7 @@ class PdbTopologyViewerPlugin {
 
     getDomainRange(){
         let allCordinatesArray: any[] = [];
-        const topologyData = this.apiData[3][this.entryId][this.entityId][this.chainId];
+        const topologyData = this.apiData[2][this.entryId][this.entityId][this.chainId];
         for(let secStrType in topologyData){
         
             if(topologyData[secStrType]){
@@ -575,8 +627,8 @@ class PdbTopologyViewerPlugin {
             this.svgEle.selectAll('.coils'+index).attr('stroke-opacity',0);
         }
         
-        const termsData = this.apiData[3][this.entryId][this.entityId][this.chainId].terms;
-        const totalCoilsInStr = this.apiData[3][this.entryId][this.entityId][this.chainId].coils.length;
+        const termsData = this.apiData[2][this.entryId][this.entityId][this.chainId].terms;
+        const totalCoilsInStr = this.apiData[2][this.entryId][this.entityId][this.chainId].coils.length;
         if(index === 0){
             this.svgEle.selectAll('.terminal_N').remove();
             this.svgEle.selectAll('.terminal_N')
@@ -621,11 +673,11 @@ class PdbTopologyViewerPlugin {
     drawTopologyStructures() {
 
         //Add container elements
-        this.targetEle.innerHTML = `<div style="border:1px solid #696969;">
+        this.targetEle.innerHTML = `<div style="${this.displayStyle}">
             <div class="svgSection" style="position:relative;width:100%;"></div>
             <div class="menuSection" style="position:relative;height:38px;line-height:38px;background-color:#696969;padding: 0 10px;font-size:16px; color: #efefef;">
                 <img src="https://www.ebi.ac.uk/pdbe/entry/static/images/logos/PDBe/logo_T_64.png" style="height:15px; width: 15px; border:0;position: absolute;margin-top: 11px;" />
-                <a style="color: #efefef;border-bottom:none; cursor:pointer;margin-left: 16px;" target="_blank" href="https://pdbe.org/${this.entryId}">${this.entryId}</a> | Entity ${this.entityId} | Chain ${this.chainId.toUpperCase()}
+                <a style="color: #efefef;border-bottom:none; cursor:pointer;margin-left: 16px;" target="_blank" href="https://pdbe.org/${this.entryId}">${this.entryId}</a> | <span class="menuDesc">Entity ${this.entityId} | Chain ${this.chainId.toUpperCase()}</span>
                 <div class="menuOptions" style="float:right;margin-right: 20px;">
                     <select class="menuSelectbox" style="margin-right: 10px;"><option value="">Select</option></select>
                     <img class="resetIcon" src="images/refresh.png" style="height:15px; width: 15px; border:0;position: absolute;margin-top: 11px;cursor:pointer;" title="Reset view" />
@@ -634,9 +686,13 @@ class PdbTopologyViewerPlugin {
         </div>`;
 
         //Get dimenstions
-        const targetEleWt = this.targetEle.offsetWidth;
-        const targetEleHt = this.targetEle.offsetHeight;
+        let targetEleWt = this.targetEle.offsetWidth;
+        let targetEleHt = this.targetEle.offsetHeight;
+        if(targetEleWt == 0) targetEleWt = (this.targetEle.parentElement as HTMLElement).offsetWidth;
+        if(targetEleHt == 0) targetEleHt = (this.targetEle.parentElement as HTMLElement).offsetHeight;
 
+        if(targetEleWt <= 330) (this.targetEle.querySelector('.menuDesc') as HTMLElement).innerText = `${this.entityId} | ${this.chainId.toUpperCase()}`;
+        
         //Set svg section dimensions
         const svgSection:any = this.targetEle.querySelector('.svgSection');
         const svgSectionHt = targetEleHt - 40;
@@ -653,7 +709,7 @@ class PdbTopologyViewerPlugin {
         this.getDomainRange();
         this.scaledPointsArr = [];
         this.svgEle.call(this.zoom).on("contextmenu", function (d:any, i:number) { d3.event.preventDefault(); }); //add zoom event and block right click event
-        const topologyData = this.apiData[3][this.entryId][this.entityId][this.chainId];
+        const topologyData = this.apiData[2][this.entryId][this.entityId][this.chainId];
         for(let secStrType in topologyData){
         // angular.forEach(this.apiResult.data[_this.entryId].topology[scope.entityId][scope.bestChainId], function(secStrArr, secStrType) {
             const secStrArr =  topologyData[secStrType];
@@ -941,9 +997,9 @@ class PdbTopologyViewerPlugin {
     }
 
     getAnnotationFromMappings = function () {
-        const mappings = this.apiData[2];
+        const mappings = this.apiData[1];
         if(typeof mappings == 'undefined') return;
-        const mappingsData = this.apiData[2][this.entryId];
+        const mappingsData = this.apiData[1][this.entryId];
         const categoryArr = ['UniProt','CATH','Pfam','SCOP'];
         for(let catIndex=0; catIndex < 3; catIndex++){
             if(typeof mappingsData[categoryArr[catIndex]] !== 'undefined'){
@@ -984,8 +1040,8 @@ class PdbTopologyViewerPlugin {
 
     getChainStartAndEnd() {
         //chains array from polymerCoveragePerChain api result
-        if(!this.apiData[5]) return;
-        var chainsData = this.apiData[5][this.entryId].molecules[0].chains;
+        if(typeof this.apiData[4] == 'undefined') return;
+        var chainsData = this.apiData[4][this.entryId].molecules[0].chains;
         
         //Iterate molecule data to get chain start and end residue
         var chainRange = {start:0, end:0}
@@ -1033,8 +1089,8 @@ class PdbTopologyViewerPlugin {
         let otherOutliersTempArray = [0];
         
         //Iterate Outlier data
-        if(!this.apiData[5]) return;
-        const outlierData = this.apiData[4][this.entryId];
+        if(typeof this.apiData[3] == 'undefined') return;
+        const outlierData = this.apiData[3][this.entryId];
         if(typeof outlierData !== 'undefined' && typeof outlierData.molecules !== 'undefined' && outlierData.molecules.length > 0){
             outlierData.molecules.forEach((qualityData:any) => {
                 if(qualityData.entity_id == this.entityId){

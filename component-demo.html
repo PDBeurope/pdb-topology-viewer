@@ -6,23 +6,22 @@
         <title>PDB Topology Viewer Web-component Demo</title>
       
         <!-- Required for IE11 -->
-        <script src="https://cdn.jsdelivr.net/npm/babel-polyfill/dist/polyfill.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/babel-polyfill/dist/polyfill.min.js" defer></script>
         <!-- Web component polyfill (only loads what it needs) -->
-        <script src="https://cdn.jsdelivr.net/npm/@webcomponents/webcomponentsjs/webcomponents-lite.js" charset="utf-8"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@webcomponents/webcomponentsjs/webcomponents-lite.js" charset="utf-8" defer></script>
         <!-- Required to polyfill modern browsers as code is ES5 for IE... -->
-        <script src="https://cdn.jsdelivr.net/npm/@webcomponents/webcomponentsjs/custom-elements-es5-adapter.js" charset="utf-8"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@webcomponents/webcomponentsjs/custom-elements-es5-adapter.js" charset="utf-8" defer></script>
 
         <!-- d3.js dependency script -->
-        <script src="https://cdn.jsdelivr.net/npm/d3@5.9.2"></script>
+        <script src="https://cdn.jsdelivr.net/npm/d3@5.9.2" defer></script>
 
         <!-- PDB Topology Viewer Web-component JS -->
-        <script type="text/javascript" src="src/app/pathseg.js"></script>
-        <script type="text/javascript" src="build/pdb-topology-viewer-component-2.0.0.js"></script>
+        <script type="text/javascript" src="build/pdb-topology-viewer-component-2.0.0.js" defer></script>
         <style>
             #pdb-component {
                 position: relative;
-                width: 700px;
-                height: 700px;
+                width: 500px;
+                height: 500px;
             }
         </style>
     </head>

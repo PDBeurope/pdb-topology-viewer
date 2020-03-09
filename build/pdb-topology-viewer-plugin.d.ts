@@ -8,6 +8,8 @@ declare class PdbTopologyViewerPlugin {
         qualityYellow: string;
         qualityOrange: string;
     };
+    displayStyle: string;
+    errorStyle: string;
     sequenceArr: string[];
     entityId: string;
     entryId: string;
@@ -23,8 +25,11 @@ declare class PdbTopologyViewerPlugin {
     svgWidth: number;
     svgHeight: number;
     svgEle: any;
-    render(target: HTMLElement, entityId: string, entryId: string, chainId: string): void;
+    render(target: HTMLElement, entityId: string, entryId: string, chainId?: string, displayStyle?: string, errorStyle?: string): void;
+    initPainting(): void;
+    displayError(errType?: string): void;
     createNewEvent: (eventTypeArr: string[]) => any;
+    getObservedResidues(pdbId: string): Promise<any>;
     getApiData(pdbId: string, chainId: string): Promise<any[]>;
     getPDBSequenceArray(entities: any[]): void;
     chunkArray(arr: any[], len: number): any[][];

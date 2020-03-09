@@ -46,6 +46,8 @@ var PdbTopologyViewerPlugin = /** @class */ (function () {
             qualityYellow: 'rgb(364.2857142857143,364.2857142857143,75.71428571428572)',
             qualityOrange: 'rgb(291.42857142857144,121.42857142857143,0)'
         };
+        this.displayStyle = 'border:1px solid #696969;';
+        this.errorStyle = 'border:1px solid #696969; height:54%; padding-top:46%; text-align:center; font-weight:bold;';
         this.svgWidth = 100;
         this.svgHeight = 100;
         this.createNewEvent = function (eventTypeArr) {
@@ -67,10 +69,10 @@ var PdbTopologyViewerPlugin = /** @class */ (function () {
         };
         this.getAnnotationFromMappings = function () {
             var _this_1 = this;
-            var mappings = this.apiData[2];
+            var mappings = this.apiData[1];
             if (typeof mappings == 'undefined')
                 return;
-            var mappingsData = this.apiData[2][this.entryId];
+            var mappingsData = this.apiData[1][this.entryId];
             var categoryArr = ['UniProt', 'CATH', 'Pfam', 'SCOP'];
             var _loop_1 = function (catIndex) {
                 if (typeof mappingsData[categoryArr[catIndex]] !== 'undefined') {
@@ -127,21 +129,50 @@ var PdbTopologyViewerPlugin = /** @class */ (function () {
             }
         };
     }
-    PdbTopologyViewerPlugin.prototype.render = function (target, entityId, entryId, chainId) {
+    PdbTopologyViewerPlugin.prototype.render = function (target, entityId, entryId, chainId, displayStyle, errorStyle) {
         var _this_1 = this;
-        if (!target && !entryId && !entityId && !chainId)
+        if (typeof displayStyle != 'undefined' && displayStyle != null)
+            this.displayStyle = displayStyle;
+        if (typeof errorStyle != 'undefined' && errorStyle != null)
+            this.errorStyle = errorStyle;
+        if (!target && !entryId && !entityId) {
+            this.displayError('param');
             return;
+        }
         this.targetEle = target;
         this.targetEle.innerHTML = '';
         this.entityId = entityId;
         this.entryId = entryId.toLowerCase();
-        this.chainId = chainId;
+        //If chain id is not provided then get best chain id from observed residues api
+        if (typeof chainId == 'undefined' || chainId == null) {
+            this.getObservedResidues(this.entryId).then(function (result) {
+                if (typeof result != 'undefined' && typeof result[_this_1.entryId] != 'undefined' && typeof result[_this_1.entryId][_this_1.entityId] != 'undefined') {
+                    _this_1.chainId = result[_this_1.entryId][_this_1.entityId][0].chain_id;
+                    _this_1.initPainting();
+                }
+                else {
+                    _this_1.displayError();
+                }
+            });
+        }
+        else {
+            this.chainId = chainId;
+            this.initPainting();
+        }
+    };
+    PdbTopologyViewerPlugin.prototype.initPainting = function () {
+        var _this_1 = this;
         this.getApiData(this.entryId, this.chainId).then(function (result) {
             if (result) {
+                //Validate required data in the API result set (0, 2, 4)
+                if (typeof result[0] == 'undefined' || typeof result[2] == 'undefined' || typeof result[4] == 'undefined') {
+                    _this_1.displayError();
+                    return;
+                }
                 _this_1.apiData = result;
                 //default pdb events
                 _this_1.pdbevents = _this_1.createNewEvent(['PDB.topologyViewer.click', 'PDB.topologyViewer.mouseover', 'PDB.topologyViewer.mouseout']);
-                _this_1.getPDBSequenceArray(result[1][_this_1.entryId]);
+                _this_1.getPDBSequenceArray(_this_1.apiData[0][_this_1.entryId]);
                 _this_1.drawTopologyStructures();
                 _this_1.createDomainDropdown();
             }
@@ -149,12 +180,36 @@ var PdbTopologyViewerPlugin = /** @class */ (function () {
             }
         });
     };
+    PdbTopologyViewerPlugin.prototype.displayError = function (errType) {
+        var errtxt = "Error: Data not available!";
+        if (errType == 'param')
+            errtxt = "Error: Invalid Parameters!";
+        this.targetEle.innerHTML = "<div style=\"" + this.errorStyle + "\">" + errtxt + "</div>";
+    };
+    PdbTopologyViewerPlugin.prototype.getObservedResidues = function (pdbId) {
+        return __awaiter(this, void 0, void 0, function () {
+            var e_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 3, , 4]);
+                        return [4 /*yield*/, fetch("https://www.ebi.ac.uk/pdbe/api/pdb/entry/observed_residues_ratio/" + pdbId)];
+                    case 1: return [4 /*yield*/, (_a.sent()).json()];
+                    case 2: return [2 /*return*/, _a.sent()];
+                    case 3:
+                        e_1 = _a.sent();
+                        console.log("Couldn't load UniProt variants", e_1);
+                        return [3 /*break*/, 4];
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
     PdbTopologyViewerPlugin.prototype.getApiData = function (pdbId, chainId) {
         return __awaiter(this, void 0, void 0, function () {
             var dataUrls;
             return __generator(this, function (_a) {
                 dataUrls = [
-                    "https://www.ebi.ac.uk/pdbe/api/pdb/entry/observed_residues_ratio/" + pdbId,
                     "https://www.ebi.ac.uk/pdbe/api/pdb/entry/entities/" + pdbId,
                     "https://www.ebi.ac.uk/pdbe/api/mappings/" + pdbId,
                     "https://www.ebi.ac.uk/pdbe/api/topology/entry/" + pdbId,
@@ -163,7 +218,12 @@ var PdbTopologyViewerPlugin = /** @class */ (function () {
                 ];
                 return [2 /*return*/, Promise.all(dataUrls.map(function (url) { return fetch(url); }))
                         .then(function (resp) { return Promise.all(resp.map(function (r) {
-                        return r.json();
+                        if (r.status == 200) {
+                            return r.json();
+                        }
+                        else {
+                            return undefined;
+                        }
                     })); })];
             });
         });
@@ -186,7 +246,7 @@ var PdbTopologyViewerPlugin = /** @class */ (function () {
     PdbTopologyViewerPlugin.prototype.getDomainRange = function () {
         var _this_1 = this;
         var allCordinatesArray = [];
-        var topologyData = this.apiData[3][this.entryId][this.entityId][this.chainId];
+        var topologyData = this.apiData[2][this.entryId][this.entityId][this.chainId];
         for (var secStrType in topologyData) {
             if (topologyData[secStrType]) {
                 // iterating on secondary str data array to get array spliced in x,y 
@@ -607,8 +667,8 @@ var PdbTopologyViewerPlugin = /** @class */ (function () {
             //Hide the main coil path
             this.svgEle.selectAll('.coils' + index).attr('stroke-opacity', 0);
         }
-        var termsData = this.apiData[3][this.entryId][this.entityId][this.chainId].terms;
-        var totalCoilsInStr = this.apiData[3][this.entryId][this.entityId][this.chainId].coils.length;
+        var termsData = this.apiData[2][this.entryId][this.entityId][this.chainId].terms;
+        var totalCoilsInStr = this.apiData[2][this.entryId][this.entityId][this.chainId].coils.length;
         if (index === 0) {
             this.svgEle.selectAll('.terminal_N').remove();
             this.svgEle.selectAll('.terminal_N')
@@ -652,10 +712,16 @@ var PdbTopologyViewerPlugin = /** @class */ (function () {
     PdbTopologyViewerPlugin.prototype.drawTopologyStructures = function () {
         var _this_1 = this;
         //Add container elements
-        this.targetEle.innerHTML = "<div style=\"border:1px solid #696969;\">\n            <div class=\"svgSection\" style=\"position:relative;width:100%;\"></div>\n            <div class=\"menuSection\" style=\"position:relative;height:38px;line-height:38px;background-color:#696969;padding: 0 10px;font-size:16px; color: #efefef;\">\n                <img src=\"https://www.ebi.ac.uk/pdbe/entry/static/images/logos/PDBe/logo_T_64.png\" style=\"height:15px; width: 15px; border:0;position: absolute;margin-top: 11px;\" />\n                <a style=\"color: #efefef;border-bottom:none; cursor:pointer;margin-left: 16px;\" target=\"_blank\" href=\"https://pdbe.org/" + this.entryId + "\">" + this.entryId + "</a> | Entity " + this.entityId + " | Chain " + this.chainId.toUpperCase() + "\n                <div class=\"menuOptions\" style=\"float:right;margin-right: 20px;\">\n                    <select class=\"menuSelectbox\" style=\"margin-right: 10px;\"><option value=\"\">Select</option></select>\n                    <img class=\"resetIcon\" src=\"images/refresh.png\" style=\"height:15px; width: 15px; border:0;position: absolute;margin-top: 11px;cursor:pointer;\" title=\"Reset view\" />\n                </div>\n            </div>\n        </div>";
+        this.targetEle.innerHTML = "<div style=\"" + this.displayStyle + "\">\n            <div class=\"svgSection\" style=\"position:relative;width:100%;\"></div>\n            <div class=\"menuSection\" style=\"position:relative;height:38px;line-height:38px;background-color:#696969;padding: 0 10px;font-size:16px; color: #efefef;\">\n                <img src=\"https://www.ebi.ac.uk/pdbe/entry/static/images/logos/PDBe/logo_T_64.png\" style=\"height:15px; width: 15px; border:0;position: absolute;margin-top: 11px;\" />\n                <a style=\"color: #efefef;border-bottom:none; cursor:pointer;margin-left: 16px;\" target=\"_blank\" href=\"https://pdbe.org/" + this.entryId + "\">" + this.entryId + "</a> | <span class=\"menuDesc\">Entity " + this.entityId + " | Chain " + this.chainId.toUpperCase() + "</span>\n                <div class=\"menuOptions\" style=\"float:right;margin-right: 20px;\">\n                    <select class=\"menuSelectbox\" style=\"margin-right: 10px;\"><option value=\"\">Select</option></select>\n                    <img class=\"resetIcon\" src=\"images/refresh.png\" style=\"height:15px; width: 15px; border:0;position: absolute;margin-top: 11px;cursor:pointer;\" title=\"Reset view\" />\n                </div>\n            </div>\n        </div>";
         //Get dimenstions
         var targetEleWt = this.targetEle.offsetWidth;
         var targetEleHt = this.targetEle.offsetHeight;
+        if (targetEleWt == 0)
+            targetEleWt = this.targetEle.parentElement.offsetWidth;
+        if (targetEleHt == 0)
+            targetEleHt = this.targetEle.parentElement.offsetHeight;
+        if (targetEleWt <= 330)
+            this.targetEle.querySelector('.menuDesc').innerText = this.entityId + " | " + this.chainId.toUpperCase();
         //Set svg section dimensions
         var svgSection = this.targetEle.querySelector('.svgSection');
         var svgSectionHt = targetEleHt - 40;
@@ -669,7 +735,7 @@ var PdbTopologyViewerPlugin = /** @class */ (function () {
         this.getDomainRange();
         this.scaledPointsArr = [];
         this.svgEle.call(this.zoom).on("contextmenu", function (d, i) { d3.event.preventDefault(); }); //add zoom event and block right click event
-        var topologyData = this.apiData[3][this.entryId][this.entityId][this.chainId];
+        var topologyData = this.apiData[2][this.entryId][this.entityId][this.chainId];
         var _loop_2 = function (secStrType) {
             // angular.forEach(this.apiResult.data[_this.entryId].topology[scope.entityId][scope.bestChainId], function(secStrArr, secStrType) {
             var secStrArr = topologyData[secStrType];
@@ -940,9 +1006,9 @@ var PdbTopologyViewerPlugin = /** @class */ (function () {
     };
     PdbTopologyViewerPlugin.prototype.getChainStartAndEnd = function () {
         //chains array from polymerCoveragePerChain api result
-        if (!this.apiData[5])
+        if (typeof this.apiData[4] == 'undefined')
             return;
-        var chainsData = this.apiData[5][this.entryId].molecules[0].chains;
+        var chainsData = this.apiData[4][this.entryId].molecules[0].chains;
         //Iterate molecule data to get chain start and end residue
         var chainRange = { start: 0, end: 0 };
         var totalChainsInArr = chainsData.length;
@@ -982,9 +1048,9 @@ var PdbTopologyViewerPlugin = /** @class */ (function () {
         var rsrzTempArray = [];
         var otherOutliersTempArray = [0];
         //Iterate Outlier data
-        if (!this.apiData[5])
+        if (typeof this.apiData[3] == 'undefined')
             return;
-        var outlierData = this.apiData[4][this.entryId];
+        var outlierData = this.apiData[3][this.entryId];
         if (typeof outlierData !== 'undefined' && typeof outlierData.molecules !== 'undefined' && outlierData.molecules.length > 0) {
             outlierData.molecules.forEach(function (qualityData) {
                 if (qualityData.entity_id == _this_1.entityId) {

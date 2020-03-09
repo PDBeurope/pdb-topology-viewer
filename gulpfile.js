@@ -38,8 +38,17 @@ gulp.task('clean', function() {
     return del([`build/${PKG_JSON.name}-component-${PKG_JSON.version}.js`, '!build']);
 });
 
-gulp.task('concatJs', function () {
-    return gulp.src([`build/${PKG_JSON.name}-plugin.js`,`build/${PKG_JSON.name}-component-build-${PKG_JSON.version}.js`])
+gulp.task('minifyPlugin', function () {
+    return gulp.src([`src/app/pathseg.js`, `build/${PKG_JSON.name}-plugin.js`])
+        .pipe(concat(`${PKG_JSON.name}-plugin-${PKG_JSON.version}.js`))
+        .pipe(uglify())
+        .pipe(header(license, {} ))
+		.pipe(header(banner, {} ))
+        .pipe(gulp.dest('build/'));
+});
+
+gulp.task('bundleJs', function () {
+    return gulp.src([`build/${PKG_JSON.name}-plugin-${PKG_JSON.version}.js`,`build/${PKG_JSON.name}-component-build-${PKG_JSON.version}.js`])
         .pipe(concat(`${PKG_JSON.name}-component-${PKG_JSON.version}.js`))
         .pipe(uglify())
         .pipe(header(license, {} ))
@@ -47,4 +56,4 @@ gulp.task('concatJs', function () {
         .pipe(gulp.dest('build/'));
 });
 
-gulp.task('default', gulp.series('clean', 'concatJs'));
+gulp.task('default', gulp.series('clean', 'minifyPlugin', 'bundleJs'));
