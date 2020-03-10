@@ -1,6 +1,6 @@
-# PDB Topology Viewer
+# Note: v1.0.0 implementation is deprecated. Please use v2.0.0 for recent updates and support.
 
-[![NPM version](http://img.shields.io/npm/v/pdb-topology-viewer.svg)](https://www.npmjs.org/package/pdb-topology-viewer) 
+# PDB Topology Viewer
 
 The topology viewer depicts the secondary structure of a protein in a 2D representation, taking into account the interactions of these secondary structure elements. This leads to a consistent display of sheets and domains in the structure. For PDB entries with multiple copies of a protein, the best chain is used. The topology viewer also depicts value-added annotation from SIFTS including residue-level mapping to UniProt, sequence families (Pfam), structure domains (SCOP, CATH) and structure quality from wwPDB validation reports.
 
