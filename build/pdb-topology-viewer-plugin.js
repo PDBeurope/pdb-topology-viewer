@@ -48,8 +48,10 @@ var PdbTopologyViewerPlugin = /** @class */ (function () {
         };
         this.displayStyle = 'border:1px solid #696969;';
         this.errorStyle = 'border:1px solid #696969; height:54%; padding-top:46%; text-align:center; font-weight:bold;';
+        this.menuStyle = 'position:relative;height:38px;line-height:38px;background-color:#696969;padding: 0 10px;font-size:16px; color: #efefef;';
         this.svgWidth = 100;
         this.svgHeight = 100;
+        this.subscribeEvents = true;
         this.createNewEvent = function (eventTypeArr) {
             var eventObj = {};
             eventTypeArr.forEach(function (eventType, index) {
@@ -120,7 +122,7 @@ var PdbTopologyViewerPlugin = /** @class */ (function () {
                 });
                 var selectBoxEle = this.targetEle.querySelector('.menuSelectbox');
                 selectBoxEle.innerHTML = optionList_1;
-                selectBoxEle.addEventListener("change", this.highlightDomain.bind(this));
+                selectBoxEle.addEventListener("change", this.displayDomain.bind(this));
                 var resetIconEle = this.targetEle.querySelector('.resetIcon');
                 resetIconEle.addEventListener("click", this.resetDisplay.bind(this));
             }
@@ -129,22 +131,27 @@ var PdbTopologyViewerPlugin = /** @class */ (function () {
             }
         };
     }
-    PdbTopologyViewerPlugin.prototype.render = function (target, entityId, entryId, chainId, displayStyle, errorStyle) {
+    PdbTopologyViewerPlugin.prototype.render = function (target, options) {
         var _this_1 = this;
-        if (typeof displayStyle != 'undefined' && displayStyle != null)
-            this.displayStyle = displayStyle;
-        if (typeof errorStyle != 'undefined' && errorStyle != null)
-            this.errorStyle = errorStyle;
-        if (!target && !entryId && !entityId) {
+        if (options && typeof options.displayStyle != 'undefined' && options.displayStyle != null)
+            this.displayStyle += options.displayStyle;
+        if (options && typeof options.errorStyle != 'undefined' && options.errorStyle != null)
+            this.errorStyle += options.errorStyle;
+        if (options && typeof options.menuStyle != 'undefined' && options.menuStyle != null)
+            this.menuStyle += options.menuStyle;
+        this.targetEle = target;
+        if (this.targetEle)
+            this.targetEle.innerHTML = '';
+        if (!target || !options || !options.entryId || !options.entityId) {
             this.displayError('param');
             return;
         }
-        this.targetEle = target;
-        this.targetEle.innerHTML = '';
-        this.entityId = entityId;
-        this.entryId = entryId.toLowerCase();
+        if (options.subscribeEvents == false)
+            this.subscribeEvents = false;
+        this.entityId = options.entityId;
+        this.entryId = options.entryId.toLowerCase();
         //If chain id is not provided then get best chain id from observed residues api
-        if (typeof chainId == 'undefined' || chainId == null) {
+        if (typeof options.chainId == 'undefined' || options.chainId == null) {
             this.getObservedResidues(this.entryId).then(function (result) {
                 if (typeof result != 'undefined' && typeof result[_this_1.entryId] != 'undefined' && typeof result[_this_1.entryId][_this_1.entityId] != 'undefined') {
                     _this_1.chainId = result[_this_1.entryId][_this_1.entityId][0].chain_id;
@@ -156,7 +163,7 @@ var PdbTopologyViewerPlugin = /** @class */ (function () {
             });
         }
         else {
-            this.chainId = chainId;
+            this.chainId = options.chainId;
             this.initPainting();
         }
     };
@@ -175,6 +182,8 @@ var PdbTopologyViewerPlugin = /** @class */ (function () {
                 _this_1.getPDBSequenceArray(_this_1.apiData[0][_this_1.entryId]);
                 _this_1.drawTopologyStructures();
                 _this_1.createDomainDropdown();
+                if (_this_1.subscribeEvents)
+                    _this_1.subscribeWcEvents();
             }
             else {
             }
@@ -184,7 +193,8 @@ var PdbTopologyViewerPlugin = /** @class */ (function () {
         var errtxt = "Error: Data not available!";
         if (errType == 'param')
             errtxt = "Error: Invalid Parameters!";
-        this.targetEle.innerHTML = "<div style=\"" + this.errorStyle + "\">" + errtxt + "</div>";
+        if (this.targetEle)
+            this.targetEle.innerHTML = "<div style=\"" + this.errorStyle + "\">" + errtxt + "</div>";
     };
     PdbTopologyViewerPlugin.prototype.getObservedResidues = function (pdbId) {
         return __awaiter(this, void 0, void 0, function () {
@@ -479,9 +489,9 @@ var PdbTopologyViewerPlugin = /** @class */ (function () {
         var dValArr2 = [];
         var subPathObj = {};
         if (curveYdiff === 0) {
-            for (var subPathIndex_1 = 0; subPathIndex_1 < totalAaInPath; subPathIndex_1++) {
+            for (var subPathIndex = 0; subPathIndex < totalAaInPath; subPathIndex++) {
                 subPathObj = { type: 'helices' };
-                if (subPathIndex_1 === 0) {
+                if (subPathIndex === 0) {
                     if (this.scaledPointsArr[3] > this.scaledPointsArr[9]) {
                         subPathObj['residue_number'] = stopResidueNumber;
                     }
@@ -497,16 +507,16 @@ var PdbTopologyViewerPlugin = /** @class */ (function () {
                 }
                 else {
                     if (this.scaledPointsArr[3] > this.scaledPointsArr[9]) {
-                        subPathObj['residue_number'] = stopResidueNumber - subPathIndex_1;
+                        subPathObj['residue_number'] = stopResidueNumber - subPathIndex;
                     }
                     else {
-                        subPathObj['residue_number'] = startResidueNumber + subPathIndex_1;
+                        subPathObj['residue_number'] = startResidueNumber + subPathIndex;
                     }
                     subPathObj['pathData'] = [
-                        dValArr2[subPathIndex_1 - 1]['pathData'][6], dValArr2[subPathIndex_1 - 1]['pathData'][7],
-                        dValArr2[subPathIndex_1 - 1]['pathData'][4], dValArr2[subPathIndex_1 - 1]['pathData'][5],
-                        dValArr2[subPathIndex_1 - 1]['pathData'][4], dValArr2[subPathIndex_1 - 1]['pathData'][5] + subPathHeight,
-                        dValArr2[subPathIndex_1 - 1]['pathData'][6], dValArr2[subPathIndex_1 - 1]['pathData'][5] + subPathHeight
+                        dValArr2[subPathIndex - 1]['pathData'][6], dValArr2[subPathIndex - 1]['pathData'][7],
+                        dValArr2[subPathIndex - 1]['pathData'][4], dValArr2[subPathIndex - 1]['pathData'][5],
+                        dValArr2[subPathIndex - 1]['pathData'][4], dValArr2[subPathIndex - 1]['pathData'][5] + subPathHeight,
+                        dValArr2[subPathIndex - 1]['pathData'][6], dValArr2[subPathIndex - 1]['pathData'][5] + subPathHeight
                     ];
                 }
                 dValArr2.push(subPathObj);
@@ -712,7 +722,7 @@ var PdbTopologyViewerPlugin = /** @class */ (function () {
     PdbTopologyViewerPlugin.prototype.drawTopologyStructures = function () {
         var _this_1 = this;
         //Add container elements
-        this.targetEle.innerHTML = "<div style=\"" + this.displayStyle + "\">\n            <div class=\"svgSection\" style=\"position:relative;width:100%;\"></div>\n            <div class=\"menuSection\" style=\"position:relative;height:38px;line-height:38px;background-color:#696969;padding: 0 10px;font-size:16px; color: #efefef;\">\n                <img src=\"https://www.ebi.ac.uk/pdbe/entry/static/images/logos/PDBe/logo_T_64.png\" style=\"height:15px; width: 15px; border:0;position: absolute;margin-top: 11px;\" />\n                <a style=\"color: #efefef;border-bottom:none; cursor:pointer;margin-left: 16px;\" target=\"_blank\" href=\"https://pdbe.org/" + this.entryId + "\">" + this.entryId + "</a> | <span class=\"menuDesc\">Entity " + this.entityId + " | Chain " + this.chainId.toUpperCase() + "</span>\n                <div class=\"menuOptions\" style=\"float:right;margin-right: 20px;\">\n                    <select class=\"menuSelectbox\" style=\"margin-right: 10px;\"><option value=\"\">Select</option></select>\n                    <img class=\"resetIcon\" src=\"images/refresh.png\" style=\"height:15px; width: 15px; border:0;position: absolute;margin-top: 11px;cursor:pointer;\" title=\"Reset view\" />\n                </div>\n            </div>\n        </div>";
+        this.targetEle.innerHTML = "<div style=\"" + this.displayStyle + "\">\n            <div class=\"svgSection\" style=\"position:relative;width:100%;\"></div>\n            <div style=\"" + this.menuStyle + "\">\n                <img src=\"https://www.ebi.ac.uk/pdbe/entry/static/images/logos/PDBe/logo_T_64.png\" style=\"height:15px; width: 15px; border:0;position: absolute;margin-top: 11px;\" />\n                <a style=\"color: #efefef;border-bottom:none; cursor:pointer;margin-left: 16px;\" target=\"_blank\" href=\"https://pdbe.org/" + this.entryId + "\">" + this.entryId + "</a> | <span class=\"menuDesc\">Entity " + this.entityId + " | Chain " + this.chainId.toUpperCase() + "</span>\n                <div class=\"menuOptions\" style=\"float:right;margin-right: 20px;\">\n                    <select class=\"menuSelectbox\" style=\"margin-right: 10px;\"><option value=\"\">Select</option></select>\n                    <img class=\"resetIcon\" src=\"https://www.ebi.ac.uk/pdbe/pdb-component-library/images/refresh.png\" style=\"height:15px; width: 15px; border:0;position: absolute;margin-top: 11px;cursor:pointer;\" title=\"Reset view\" />\n                </div>\n            </div>\n        </div>";
         //Get dimenstions
         var targetEleWt = this.targetEle.offsetWidth;
         var targetEleHt = this.targetEle.offsetHeight;
@@ -956,11 +966,74 @@ var PdbTopologyViewerPlugin = /** @class */ (function () {
         this.svgEle._groups[0][0].querySelectorAll('.coilsSubPath').forEach(function (node) { return _this_1.svgEle._groups[0][0].append(node); });
         //shift dashed paths to top in DOM
         this.svgEle._groups[0][0].querySelectorAll('.dashedEle').forEach(function (node) { return _this_1.svgEle._groups[0][0].append(node); });
-        this.highlightDomain('zoom');
+        this.displayDomain('zoom');
         //bring rsrz validation circles in front
         this.svgEle._groups[0][0].querySelectorAll('.validationResidue').forEach(function (node) { return _this_1.svgEle._groups[0][0].append(node); });
         //bring selection in front
         this.svgEle._groups[0][0].querySelectorAll('.residueSelection').forEach(function (node) { return _this_1.svgEle._groups[0][0].append(node); });
+    };
+    PdbTopologyViewerPlugin.prototype.clearHighlight = function () {
+        this.svgEle.selectAll('.residueHighlight').remove();
+    };
+    PdbTopologyViewerPlugin.prototype.highlight = function (startResidue, endResidue, color, eventType) {
+        var _this = this;
+        var fill = '#000000';
+        var stroke = '#000000';
+        var strokeWidth = 0.3;
+        var strokeOpacity = 0;
+        var _loop_3 = function (residueNumber) {
+            //get topology residue details
+            var residueEle = this_2.svgEle.select('.topo_res_' + residueNumber);
+            if (residueEle && residueEle._groups && residueEle._groups[0][0] == null)
+                return { value: void 0 }; //if residue element do not exist
+            var residueEleNode = residueEle.node();
+            var residueEleData = residueEle.data();
+            if (color) {
+                if (typeof color == 'string') {
+                    stroke = color;
+                    fill = color;
+                }
+                else {
+                    stroke = d3.rgb(color.r, color.g, color.b);
+                    fill = d3.rgb(color.r, color.g, color.b);
+                }
+            }
+            if (residueEleData[0].type !== 'strands' && residueEleData[0].type !== 'helices') {
+                fill = 'none';
+                strokeWidth = 2;
+                strokeOpacity = 0.5;
+            }
+            else {
+                stroke = 'none';
+            }
+            this_2.svgEle
+                .append('path')
+                .data([{ residueNumber: residueNumber }])
+                .attr('class', function (d) {
+                if (eventType == 'click') {
+                    return 'residueSelection seletectedResidue_' + residueNumber;
+                }
+                else {
+                    return 'residueHighlight highlightResidue_' + residueNumber;
+                }
+            })
+                .attr('d', residueEle.attr('d'))
+                .attr('fill', fill)
+                .attr('fill-opacity', 0.5)
+                .attr('stroke', stroke)
+                .attr('stroke-opacity', strokeOpacity)
+                .attr('stroke-width', strokeWidth)
+                .on('mouseover', function (d) { _this.mouseoverAction(residueEleNode, residueEleData[0]); })
+                .on('mousemove', function (d) { _this.mouseoverAction(residueEleNode, residueEleData[0]); })
+                .on('mouseout', function (d) { _this.mouseoutAction(residueEleNode, residueEleData[0]); })
+                .on("click", function (d) { _this.clickAction(residueEleData[0]); });
+        };
+        var this_2 = this;
+        for (var residueNumber = startResidue; residueNumber <= endResidue; residueNumber++) {
+            var state_2 = _loop_3(residueNumber);
+            if (typeof state_2 === "object")
+                return state_2.value;
+        }
     };
     PdbTopologyViewerPlugin.prototype.drawValidationShape = function (residueNumber, shape, rgbColor) {
         var _this = this;
@@ -1127,7 +1200,7 @@ var PdbTopologyViewerPlugin = /** @class */ (function () {
             }
         }
     };
-    PdbTopologyViewerPlugin.prototype.clearHighlight = function () {
+    PdbTopologyViewerPlugin.prototype.resetTheme = function () {
         var _this = this;
         this.svgEle.selectAll('.coloured').each(function (d) {
             var element = d3.select(this);
@@ -1187,7 +1260,7 @@ var PdbTopologyViewerPlugin = /** @class */ (function () {
             .classed("coloured", true)
             .attr('data-color', rgbColor);
     };
-    PdbTopologyViewerPlugin.prototype.highlightResidues = function (residueDetails) {
+    PdbTopologyViewerPlugin.prototype.updateTheme = function (residueDetails) {
         var _this = this;
         residueDetails.forEach(function (residueDetailsObj) {
             for (var i = residueDetailsObj.start; i <= residueDetailsObj.end; i++) {
@@ -1195,13 +1268,13 @@ var PdbTopologyViewerPlugin = /** @class */ (function () {
             }
         });
     };
-    PdbTopologyViewerPlugin.prototype.highlightDomain = function (invokedFrom) {
+    PdbTopologyViewerPlugin.prototype.displayDomain = function (invokedFrom) {
         var selectBoxEle = this.targetEle.querySelector('.menuSelectbox');
         var selectedValue = parseInt(selectBoxEle.value);
         var selectedDomain = this.domainTypes[selectedValue];
         if (selectedDomain.data !== null) {
-            this.clearHighlight();
-            this.highlightResidues(selectedDomain.data);
+            this.resetTheme();
+            this.updateTheme(selectedDomain.data);
             //show rsrz validation circles if Quality
             if (selectedDomain.label === 'Quality') {
                 this.svgEle.selectAll('.validationResidue').style('display', 'block');
@@ -1209,14 +1282,168 @@ var PdbTopologyViewerPlugin = /** @class */ (function () {
         }
         else {
             if (invokedFrom !== 'zoom') {
-                this.clearHighlight();
+                this.resetTheme();
             }
         }
     };
     PdbTopologyViewerPlugin.prototype.resetDisplay = function () {
         var selectBoxEle = this.targetEle.querySelector('.menuSelectbox');
         selectBoxEle.value = 0;
-        this.highlightDomain();
+        this.displayDomain();
+    };
+    PdbTopologyViewerPlugin.prototype.handleSeqViewerEvents = function (e, eType) {
+        if (typeof e.eventData !== 'undefined') {
+            //Abort if entryid and entityid do not match
+            if (e.eventData.entryId.toLowerCase() != this.entryId.toLowerCase() || e.eventData.entityId != this.entityId)
+                return;
+            //Abort if chain id is different
+            if (e.eventData.elementData.pathData.chain_id && e.eventData.elementData.pathData.chain_id != this.chainId)
+                return;
+            //Remove previous selection / highlight
+            var selectionPathClass = 'residueSelection';
+            if (eType == 'mouseover') {
+                selectionPathClass = 'residueHighlight';
+            }
+            this.svgEle.selectAll('.' + selectionPathClass).remove();
+            var startResidue = void 0;
+            var endResidue = void 0;
+            if (e.eventData.residueNumber) {
+                startResidue = e.eventData.residueNumber;
+                endResidue = e.eventData.residueNumber;
+            }
+            else if (e.eventData.elementData.pathData.start.residue_number && e.eventData.elementData.pathData.end.residue_number) {
+                startResidue = e.eventData.elementData.pathData.start.residue_number;
+                endResidue = e.eventData.elementData.pathData.end.residue_number;
+            }
+            if (typeof startResidue !== 'undefined' && typeof endResidue !== 'undefined') {
+                var color = void 0;
+                if (e.eventData.elementData.color && e.eventData.elementData.color.length == 1) {
+                    color = e.eventData.elementData.color[0];
+                }
+                else {
+                    color = { r: e.eventData.elementData.color[0], g: e.eventData.elementData.color[1], b: e.eventData.elementData.color[2] };
+                }
+                this.highlight(startResidue, endResidue, color, eType);
+            }
+        }
+    };
+    PdbTopologyViewerPlugin.prototype.handleProtvistaEvents = function (e, eType) {
+        if (typeof e.detail !== 'undefined') {
+            var selColor = undefined;
+            //Remove previous selection / highlight
+            var selectionPathClass = 'residueSelection';
+            if (eType == 'mouseover') {
+                selectionPathClass = 'residueHighlight';
+            }
+            this.svgEle.selectAll('.' + selectionPathClass).remove();
+            //Abort if chain id is different
+            if (typeof e.detail.feature != 'undefined') {
+                if (typeof e.detail.feature.accession != 'undefined') {
+                    var accessionArr = e.detail.feature.accession.split(' ');
+                    if (accessionArr[0] == 'Chain' && (accessionArr[1].toLowerCase() != this.chainId.toLowerCase()))
+                        return;
+                }
+                if (e.detail.trackIndex > -1 && e.detail.feature.locations && e.detail.feature.locations[0].fragments[e.detail.trackIndex].color)
+                    selColor = e.detail.feature.locations[0].fragments[e.detail.trackIndex].color;
+                if (typeof selColor == 'undefined' && e.detail.feature.color)
+                    selColor = e.detail.feature.color;
+            }
+            if (typeof selColor == 'undefined' && e.detail.color)
+                selColor = e.detail.color;
+            if (typeof selColor != 'undefined') {
+                var isRgb = /rgb/g;
+                ;
+                if (isRgb.test(selColor)) {
+                    selColor = selColor.substring(4, selColor.length - 1).split(',');
+                }
+                else {
+                    selColor = [selColor];
+                }
+            }
+            var color = void 0;
+            if (selColor) {
+                if (selColor.length == 1) {
+                    color = e.eventData.elementData.color[0];
+                }
+                else {
+                    color = { r: e.eventData.elementData.color[0], g: e.eventData.elementData.color[1], b: e.eventData.elementData.color[2] };
+                }
+            }
+            //Apply new selection
+            this.highlight(e.detail.start, e.detail.end, color, eType);
+        }
+    };
+    PdbTopologyViewerPlugin.prototype.handleMolstarEvents = function (e, eType) {
+        if (typeof e.eventData !== 'undefined' && Object.keys(e.eventData).length > 0) {
+            //Remove previous selection / highlight
+            var selectionPathClass = 'residueSelection';
+            if (eType == 'mouseover') {
+                selectionPathClass = 'residueHighlight';
+            }
+            this.svgEle.selectAll('.' + selectionPathClass).remove();
+            //Abort if entryid and entityid do not match or viewer type is unipdb
+            if (e.eventData.entry_id.toLowerCase() != this.entryId.toLowerCase() || e.eventData.entity_id != this.entityId)
+                return;
+            //Abort if chain id is different
+            if (e.eventData.label_asym_id.toLowerCase() != this.chainId.toLowerCase())
+                return;
+            //Apply new selection
+            this.highlight(e.eventData.seq_id, e.eventData.seq_id, undefined, eType);
+        }
+    };
+    PdbTopologyViewerPlugin.prototype.subscribeWcEvents = function () {
+        var _this_1 = this;
+        //sequence viewer events
+        document.addEventListener('PDB.seqViewer.click', function (e) {
+            _this_1.handleSeqViewerEvents(e, 'click');
+        });
+        document.addEventListener('PDB.seqViewer.mouseover', function (e) {
+            _this_1.handleSeqViewerEvents(e, 'mouseover');
+        });
+        document.addEventListener('PDB.seqViewer.mouseout', function () {
+            _this_1.svgEle.selectAll('.residueHighlight').remove();
+        });
+        //litemol viewer events
+        document.addEventListener('PDB.litemol.click', function (e) {
+            _this_1.svgEle.selectAll('.residueSelection').remove();
+            //Abort if entryid and entityid do not match or viewer type is unipdb
+            if (e.eventData.entryId.toLowerCase() != _this_1.entryId.toLowerCase() || e.eventData.entityId != _this_1.entityId)
+                return;
+            //Abort if chain id is different
+            if (e.eventData.chainId.toLowerCase() != _this_1.chainId.toLowerCase())
+                return;
+            _this_1.highlight(e.eventData.residueNumber, e.eventData.residueNumber, undefined, 'click');
+        });
+        document.addEventListener('PDB.litemol.mouseover', function (e) {
+            _this_1.svgEle.selectAll('.residueHighlight').remove();
+            //Abort if entryid and entityid do not match or viewer type is unipdb
+            if (e.eventData.entryId.toLowerCase() != _this_1.entryId.toLowerCase() || e.eventData.entityId != _this_1.entityId)
+                return;
+            //Abort if chain id is different
+            if (e.eventData.chainId.toLowerCase() != _this_1.chainId.toLowerCase())
+                return;
+            _this_1.highlight(e.eventData.residueNumber, e.eventData.residueNumber, undefined, 'mouseover');
+        });
+        //protvista viewer events
+        document.addEventListener('protvista-click', function (e) {
+            _this_1.handleProtvistaEvents(e, 'click');
+        });
+        document.addEventListener('protvista-mouseover', function (e) {
+            _this_1.handleProtvistaEvents(e, 'mouseover');
+        });
+        document.addEventListener('protvista-mouseout', function () {
+            _this_1.svgEle.selectAll('.residueHighlight').remove();
+        });
+        //molstar viewer events
+        document.addEventListener('PDB.molstar.click', function (e) {
+            _this_1.handleMolstarEvents(e, 'click');
+        });
+        document.addEventListener('PDB.molstar.mouseover', function (e) {
+            _this_1.handleMolstarEvents(e, 'mouseover');
+        });
+        document.addEventListener('PDB.molstar.mouseout', function () {
+            _this_1.svgEle.selectAll('.residueHighlight').remove();
+        });
     };
     return PdbTopologyViewerPlugin;
 }());

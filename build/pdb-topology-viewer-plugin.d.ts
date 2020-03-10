@@ -10,6 +10,7 @@ declare class PdbTopologyViewerPlugin {
     };
     displayStyle: string;
     errorStyle: string;
+    menuStyle: string;
     sequenceArr: string[];
     entityId: string;
     entryId: string;
@@ -25,7 +26,16 @@ declare class PdbTopologyViewerPlugin {
     svgWidth: number;
     svgHeight: number;
     svgEle: any;
-    render(target: HTMLElement, entityId: string, entryId: string, chainId?: string, displayStyle?: string, errorStyle?: string): void;
+    subscribeEvents: boolean;
+    render(target: HTMLElement, options: {
+        entityId: string;
+        entryId: string;
+        chainId?: string;
+        subscribeEvents?: boolean;
+        displayStyle?: string;
+        errorStyle?: string;
+        menuStyle?: string;
+    }): void;
     initPainting(): void;
     displayError(errType?: string): void;
     createNewEvent: (eventTypeArr: string[]) => any;
@@ -46,6 +56,12 @@ declare class PdbTopologyViewerPlugin {
     drawCoilsSubpaths(startResidueNumber: number, stopResidueNumber: number, index: number): void;
     drawTopologyStructures(): void;
     zoomDraw(): void;
+    clearHighlight(): void;
+    highlight(startResidue: number, endResidue: number, color?: {
+        r: number;
+        g: number;
+        b: number;
+    } | string, eventType?: string): void;
     drawValidationShape(residueNumber: number, shape: string, rgbColor: string): void;
     getAnnotationFromMappings: () => void;
     getChainStartAndEnd(): {
@@ -54,9 +70,13 @@ declare class PdbTopologyViewerPlugin {
     } | undefined;
     getAnnotationFromOutliers(): void;
     createDomainDropdown: () => void;
-    clearHighlight(): void;
+    resetTheme(): void;
     changeResidueColor(residueNumber: number, rgbColor: string, tooltipContent: string, tooltipPosition: string): void;
-    highlightResidues(residueDetails: any): void;
-    highlightDomain(invokedFrom?: string): void;
+    updateTheme(residueDetails: any): void;
+    displayDomain(invokedFrom?: string): void;
     resetDisplay(): void;
+    handleSeqViewerEvents(e: any, eType: string): void;
+    handleProtvistaEvents(e: any, eType: string): void;
+    handleMolstarEvents(e: any, eType: string): void;
+    subscribeWcEvents(): void;
 }

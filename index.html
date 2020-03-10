@@ -7,13 +7,13 @@
     <script src="https://cdn.jsdelivr.net/npm/d3@5.9.2"></script>
     
     <!-- PDB Topology Viewer JS -->
-    <script type="text/javascript" src="build/pdb-topology-viewer-plugin-2.0.0.js"></script>
+    <script type="text/javascript" src="build/pdb-topology-viewer-plugin-2.0.0.js" defer></script>
 
     <style>
         #pdb-topology-viewer {
             position: relative;
-            width: 600px;
-            height: 600px;
+            width: 500px;
+            height: 500px;
         }
     </style>
 
@@ -26,14 +26,23 @@
     <div id="pdb-topology-viewer"></div>
     
     <script>
-      //Create plugin instance
-      var pluginInstance = new PdbTopologyViewerPlugin();
+      document.addEventListener('DOMContentLoaded', () => {
 
-      //Get element from HTML/Template to place the view
-      var viewContainer = document.getElementById('pdb-topology-viewer');
-  
-      //Call render method to display the 3D view
-      pluginInstance.render(viewContainer, '1', '2nnu', 'A');
+        //Create plugin instance
+        const pluginInstance = new PdbTopologyViewerPlugin();
+
+        //Get element from HTML/Template to place the view
+        const viewContainer = document.getElementById('pdb-topology-viewer');
+
+        const options = {
+          entryId: '1cbs',
+          entityId: '1'
+        } 
+    
+        //Call render method to display the 2D view
+        pluginInstance.render(viewContainer, options);
+      
+      });
       
     </script>
   </body>
