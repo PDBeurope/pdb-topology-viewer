@@ -9,7 +9,7 @@ It is a <a href="http://www.ebi.ac.uk/pdbe/pdb-component-library" target="_blank
 ![PDB Topology Viewer](/images/pdb-topology-viewer.png)
 
 ## Getting Started
-(Wiki link here)
+**Refer [PDB Topology Viewer Wiki](https://github.com/PDBeurope/pdb-topology-viewer/wiki) for detailed documentation and examples**
 
 ## Contact
 Please <a href="https://github.com/PDBeurope/pdb-topology-viewer">use github</a> to report **bugs**, discuss potential **new features** or **ask questions** in general. Also you can <a href="http://www.ebi.ac.uk/pdbe/about/contact" target="_blank">contact us here</a> for support, feedback or to report any issues.
