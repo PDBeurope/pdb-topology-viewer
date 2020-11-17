@@ -1363,10 +1363,10 @@ var PdbTopologyViewerPlugin = /** @class */ (function () {
             var color = void 0;
             if (selColor) {
                 if (selColor.length == 1) {
-                    color = e.eventData.elementData.color[0];
+                    color = selColor[0];
                 }
                 else {
-                    color = { r: e.eventData.elementData.color[0], g: e.eventData.elementData.color[1], b: e.eventData.elementData.color[2] };
+                    color = { r: selColor[0], g: selColor[1], b: selColor[2] };
                 }
             }
             //Apply new selection
