@@ -695,9 +695,9 @@ class PdbTopologyViewerPlugin {
         //Get dimenstions
         let targetEleWt = this.targetEle.offsetWidth;
         let targetEleHt = this.targetEle.offsetHeight;
-        if(targetEleWt == 0) targetEleWt = (this.targetEle.parentElement as HTMLElement).offsetWidth;
-        if(targetEleHt == 0) targetEleHt = (this.targetEle.parentElement as HTMLElement).offsetHeight;
-
+        if(targetEleWt == 0 || this.targetEle.tagName === 'PDB-TOPOLOGY-VIEWER') targetEleWt = (this.targetEle.parentElement as HTMLElement).offsetWidth;
+        if(targetEleHt == 0 || this.targetEle.tagName === 'PDB-TOPOLOGY-VIEWER') targetEleHt = (this.targetEle.parentElement as HTMLElement).offsetHeight;
+        
         if(targetEleWt <= 330) (this.targetEle.querySelector('.menuDesc') as HTMLElement).innerText = `${this.entityId} | ${this.chainId.toUpperCase()}`;
         
         //Set svg section dimensions

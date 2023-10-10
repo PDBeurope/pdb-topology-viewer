@@ -726,9 +726,9 @@ var PdbTopologyViewerPlugin = /** @class */ (function () {
         //Get dimenstions
         var targetEleWt = this.targetEle.offsetWidth;
         var targetEleHt = this.targetEle.offsetHeight;
-        if (targetEleWt == 0)
+        if (targetEleWt == 0 || this.targetEle.tagName === 'PDB-TOPOLOGY-VIEWER')
             targetEleWt = this.targetEle.parentElement.offsetWidth;
-        if (targetEleHt == 0)
+        if (targetEleHt == 0 || this.targetEle.tagName === 'PDB-TOPOLOGY-VIEWER')
             targetEleHt = this.targetEle.parentElement.offsetHeight;
         if (targetEleWt <= 330)
             this.targetEle.querySelector('.menuDesc').innerText = this.entityId + " | " + this.chainId.toUpperCase();
