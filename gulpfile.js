@@ -3,20 +3,23 @@ const path = require('path');
 var del = require('del');
 var concat = require('gulp-concat');
 var header = require('gulp-header');
-var uglify = require("gulp-uglify");
+const terser = require('gulp-terser');
 
 const PACKAGE_ROOT_PATH = process.cwd();
-const PKG_JSON = require(path.join(PACKAGE_ROOT_PATH, "package.json"));
+const PKG_JSON = require(path.join(PACKAGE_ROOT_PATH, 'package.json'));
 
-const banner = ['/**',
+const banner = [
+  '/**',
   ` * ${PKG_JSON.name}`,
   ` * @version ${PKG_JSON.version}`,
   ' * @link https://github.com/PDBeurope/pdb-topology-viewer',
   ' * @license Apache 2.0',
   ' */',
-  ''].join('\n');
+  '',
+].join('\n');
 
-  const license = ['/**',
+const license = [
+  '/**',
   ' * Copyright 2020-2021 Mandar Deshpande <mandar@ebi.ac.uk>',
   ' * European Bioinformatics Institute (EBI, http://www.ebi.ac.uk/)',
   ' * European Molecular Biology Laboratory (EMBL, http://www.embl.de/)',
@@ -31,29 +34,46 @@ const banner = ['/**',
   ' * See the License for the specific language governing permissions and ',
   ' * limitations under the License.',
   ' */',
-  ''].join('\n');
+  '',
+].join('\n');
 
-
-gulp.task('clean', function() {
-    return del([`build/${PKG_JSON.name}-component-${PKG_JSON.version}.js`, '!build']);
+gulp.task('clean', function () {
+  return del([
+    `build/${PKG_JSON.name}-component-${PKG_JSON.version}.js`,
+    '!build',
+  ]);
 });
 
 gulp.task('minifyPlugin', function () {
-    return gulp.src([`src/app/pathseg.js`, `build/${PKG_JSON.name}-plugin.js`])
-        .pipe(concat(`${PKG_JSON.name}-plugin-${PKG_JSON.version}.js`))
-        .pipe(uglify())
-        .pipe(header(license, {} ))
-		.pipe(header(banner, {} ))
-        .pipe(gulp.dest('build/'));
+  return gulp
+    .src(['src/app/pathseg.js', `build/${PKG_JSON.name}-plugin-*.js`], {
+      allowEmpty: true,
+    })
+    .pipe(concat(`${PKG_JSON.name}-plugin-${PKG_JSON.version}.js`))
+    .pipe(terser())
+    .pipe(header(license, {}))
+    .pipe(header(banner, {}))
+    .pipe(gulp.dest('build/'));
 });
 
 gulp.task('bundleJs', function () {
-    return gulp.src([`build/${PKG_JSON.name}-plugin-${PKG_JSON.version}.js`,`build/${PKG_JSON.name}-component-build-${PKG_JSON.version}.js`])
-        .pipe(concat(`${PKG_JSON.name}-component-${PKG_JSON.version}.js`))
-        .pipe(uglify())
-        .pipe(header(license, {} ))
-		.pipe(header(banner, {} ))
-        .pipe(gulp.dest('build/'));
+  return gulp
+    .src(
+      [
+        `build/${PKG_JSON.name}-plugin-${PKG_JSON.version}.js`,
+        `build/${PKG_JSON.name}-component-build-${PKG_JSON.version}.js`,
+      ],
+      { allowEmpty: true },
+    )
+    .pipe(concat(`${PKG_JSON.name}-component-${PKG_JSON.version}.js`))
+    .pipe(terser())
+    .pipe(header(license, {}))
+    .pipe(header(banner, {}))
+    .pipe(gulp.dest('build/'));
 });
+
+// gulp.task('copy-assets', function () {
+//   return gulp.src('src/assets/**/*').pipe(gulp.dest('build/assets'));
+// });
 
 gulp.task('default', gulp.series('clean', 'minifyPlugin', 'bundleJs'));

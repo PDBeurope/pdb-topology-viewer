@@ -1,26 +1,25 @@
 {
-    "compilerOptions": {
-        "declaration": true,
-        "target": "es5",
-        "alwaysStrict": true,
-        "noImplicitAny": true,
-        "noImplicitThis": false,
-        "sourceMap": true,
-        "noUnusedLocals": true,
-        "strictNullChecks": true,
-        "strictFunctionTypes": true,
-        // "downlevelIteration": true,
-        "lib": [ "es6", "dom", "esnext.asynciterable", "es2016" ],
-        // "rootDir": "src",
-        // "outDir": "build",
-        "outFile": "build/pdb-topology-viewer-plugin.js"
-  
-    },
-    "include": [ "src/app/*" ],
-    "exclude": [
-        "node_modules",
-        "build",
-        "dist"      
-    ]
+  "compilerOptions": {
+    "target": "ES2018", // modern output (for Webpack/Babel)
+    "module": "ESNext", // Webpack handles modules
+    "moduleResolution": "Node",
+    "lib": ["ES2018", "DOM"], // include browser + ES features
+    "allowJs": true,
+    "checkJs": false,
+    "sourceMap": true,
+    "declaration": false, // no .d.ts in dist
+    "esModuleInterop": true, // ✅ enables default imports for CommonJS
+    "forceConsistentCasingInFileNames": true,
+    "strict": false, // can set to true later if you want strict typing
+    "skipLibCheck": true, // skip type checks for node_modules (e.g. d3 types)
+    "resolveJsonModule": true,
+    "isolatedModules": true,
 
+    "outDir": "./build/tsc",
+    "rootDir": "./src",
+
+    "noEmitOnError": true
+  },
+  "include": ["src/**/*", "src/types/**/*"],
+  "exclude": ["node_modules", "build", "dist"]
 }

@@ -1,84 +1,95 @@
+process.env.WEBPACK_CLI_FORCE_MULTI_CONFIG = 'true';
+
 const path = require('path');
-// const webpack = require('webpack');
-// const ExtraWatchWebpackPlugin = require('extra-watch-webpack-plugin');
-// const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const PKG_JSON = require(path.join(process.cwd(), 'package.json'));
 
-const PACKAGE_ROOT_PATH = process.cwd();
-const PKG_JSON = require(path.join(PACKAGE_ROOT_PATH, "package.json"));
+// Build 1: Plugin (the core D3 viewer)
+const pluginConfig = {
+  entry: path.resolve(__dirname, 'src/app/index.ts'),
+  output: {
+    filename: `${PKG_JSON.name}-plugin-${PKG_JSON.version}.js`,
+    path: path.resolve(__dirname, 'build'),
+    library: {
+      name: 'PdbTopologyViewerPlugin',
+      type: 'umd',
+      export: 'default',
+    },
+    globalObject: 'this',
+    clean: false,
+  },
+  target: 'web',
+  devtool: 'source-map',
+  resolve: {
+    extensions: ['.ts', '.js'],
+  },
+  module: {
+    rules: [
+      {
+        test: /\.tsx?$/,
+        use: 'ts-loader',
+        exclude: /node_modules/,
+      },
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: [['@babel/preset-env', { targets: 'defaults' }]],
+          },
+        },
+      },
+      {
+        test: /\.css$/i,
+        use: ['style-loader', 'css-loader'],
+      },
+      {
+        test: /\.(png|jpg|jpeg|svg|webp)$/i,
+        type: 'asset/inline',
+      },
+    ],
+  },
+  optimization: { minimize: true },
+};
 
+// 🔹 Build 2: Web Component (depends on plugin)
 const componentConfig = {
-    entry: path.resolve(__dirname, `src/web-component/index.js`),
-    output: { filename: `${PKG_JSON.name}-component-build-${PKG_JSON.version}.js`, path: path.resolve(__dirname, `build/`) },
-    target: "web",
-    devtool: "source-map",
-    resolve: {
-      extensions: [".js"]
+  entry: path.resolve(__dirname, 'src/web-component/index.js'),
+  output: {
+    filename: `${PKG_JSON.name}-component-build-${PKG_JSON.version}.js`,
+    path: path.resolve(__dirname, 'build'),
+    library: {
+      name: 'PdbTopologyViewerComponent',
+      type: 'umd',
+      export: 'default',
     },
-    externals: {
-      "PdbTopologyViewerPlugin": "PdbTopologyViewerPlugin"
-    },
-    // plugins: [new CleanWebpackPlugin([path.join(PACKAGE_ROOT_PATH, "build")])],
-    module: {
-      rules: [
-        {
-          test: /\.css$/,
-          use: [
-            "style-loader",
-            { loader: "css-loader", options: { importLoaders: 1 } }
-          ]
+    globalObject: 'this',
+    clean: false,
+  },
+  target: 'web',
+  devtool: 'source-map',
+  externals: {
+    PdbTopologyViewerPlugin: 'PdbTopologyViewerPlugin',
+  },
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: [['@babel/preset-env', { targets: 'defaults' }]],
+          },
         },
-        {
-          test: /.(jpg|jpeg|png|svg)$/,
-          use: ['url-loader'],
-        },
-        {
-          test: /\.(js)$/,
-          exclude: function excludeCondition(path){
-              
-              const nonEs5SyntaxPackages = [
-                'lit-element',
-                'lit-html'
-              ]
-              
-              // DO transpile these packages
-              if (nonEs5SyntaxPackages.some( pkg => path.match(pkg))) {
-                return false;
-              }
-            
-              // Ignore all other modules that are in node_modules
-              if (path.match(/node_modules\\/)) { return true; }
-            
-              else return false;
-            },
-          use: {
-            loader: "babel-loader",
-            options: {
-              babelrc: false,
-              presets: [
-                [
-                  "@babel/preset-env",
-                  {
-                    targets: {
-                      ie: 11,
-                      browsers: "last 2 versions"
-                    },
-                    modules: false
-                  }
-                ]
-              ],
-              plugins: [
-                [
-                  "@babel/plugin-transform-runtime",
-                  {
-                    regenerator: true
-                  }
-                ]
-              ]
-            }
-          }
-        }
-      ]
-    }
-}
+      },
+      {
+        test: /\.css$/i,
+        use: ['style-loader', 'css-loader'],
+      },
+    ],
+  },
+  optimization: { minimize: true },
+};
 
-module.exports = [componentConfig];
+module.exports = [pluginConfig, componentConfig];
